@@ -1,0 +1,144 @@
+What does --dry-run mean? (Simple words)
+
+--dry-run means:
+
+“Show me what Kubernetes would do, but do NOT actually do it.”
+
+Think of it like:
+
+Preview before saving a file
+
+Test run before real execution
+
+echo instead of running a command
+
+ Kubernetes validates and generates the object, but does not create or change anything in the cluster.
+
+2️⃣ Why is --dry-run used in real life?
+
+In real environments (especially production):
+
+❌ You don’t want to accidentally create or delete resources
+
+❌ You don’t want wrong YAML applied directly
+
+✅ You want to verify first, then apply
+
+So engineers use --dry-run to:
+
+validate commands
+
+generate YAML
+
+avoid mistakes
+
+3️⃣ Types of --dry-run (Important)
+
+There are two types:
+
+🔹 Client-side dry run
+--dry-run=client
+
+
+Checked locally
+
+No API server call
+
+Fast
+
+Used to generate YAML
+
+🔹 Server-side dry run
+--dry-run=server
+
+
+Checked by Kubernetes API server
+
+Validates against cluster rules (RBAC, admission controllers)
+
+Used in production safety checks
+
+4️⃣ Example 1: Create a Pod (but don’t actually create it)
+kubectl run nginx --image=nginx --dry-run=client
+
+
+Output:
+
+pod/nginx created (dry run)
+
+
+👉 Pod is NOT created.
+
+Check:
+
+kubectl get pods
+
+
+❌ You will NOT see nginx.
+
+5️⃣ Example 2: Generate YAML using --dry-run (MOST COMMON USE)
+kubectl run nginx \
+  --image=nginx \
+  --dry-run=client \
+  -o yaml
+
+
+👉 This prints the Pod YAML to the screen.
+
+You can now:
+
+review it
+
+modify it
+
+save it to a file
+
+Example:
+
+kubectl run nginx --image=nginx --dry-run=client -o yaml > nginx-pod.yaml
+
+6️⃣ Example 3: Create a Deployment YAML safely
+kubectl create deployment nginx-deploy --image=nginx --dry-run=client  -o yaml
+
+
+Again:
+
+No deployment is created
+
+Only YAML is generated
+
+7️⃣ Example 4: Server-side dry run (production style)
+kubectl apply -f nginx.yaml --dry-run=server
+
+
+What this does:
+
+Sends YAML to API server
+
+Validates permissions and policies
+
+Does not apply changes
+
+👉 Very useful before applying in production.
+
+8️⃣ Example 5: Validate without YAML file
+kubectl create namespace dev --dry-run=client -o yaml
+
+
+This generates:
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+
+🧠 Real-world flow (how engineers work)
+kubectl create deployment app --image=myapp --dry-run=client -o yaml > app.yaml
+# review and edit YAML
+kubectl apply -f app.yaml
+
+🟢 One-line interview answer
+
+The --dry-run option in Kubernetes allows us to preview and validate resource creation without actually applying it to the cluster.
+
+  
