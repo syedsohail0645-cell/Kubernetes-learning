@@ -1,0 +1,196 @@
+1️⃣ What is a Namespace in Kubernetes?
+
+A Namespace is a logical partition inside a Kubernetes cluster used to group and isolate resources.
+
+Think of a namespace like a folder inside a cluster.
+
+Cluster
+ ├── default
+ ├── kube-system
+ ├── dev
+ ├── qa
+ └── prod
+
+2️⃣ Why do we need Namespaces? (Core Problem)
+
+Without namespaces:
+
+All Pods, Services, Deployments live together
+
+Name conflicts happen
+
+No isolation
+
+Hard to manage access & limits
+
+❌ Example problem:
+
+Pod name: web
+Pod name: web  ← conflict!
+
+3️⃣ What problems Namespaces solve ✅
+🔹 1. Resource Isolation
+
+You can separate workloads:
+
+Namespace	Purpose
+dev	Development
+test	Testing
+prod	Production
+
+Same resource names allowed:
+
+dev/web
+prod/web
+
+🔹 2. Access Control (RBAC)
+
+You can say:
+
+Dev team → only dev namespace
+
+Ops team → all namespaces
+
+Example:
+
+User A → dev namespace only
+User B → prod namespace only
+
+🔹 3. Resource Quotas & Limits
+
+Namespaces allow:
+
+CPU limits
+
+Memory limits
+
+Pod count limits
+
+Example:
+
+dev namespace → max 5 Pods
+prod namespace → max 50 Pods
+
+
+Prevents resource abuse.
+
+🔹 4. Easier Management
+
+You can:
+
+List resources per namespace
+
+Delete all resources in one namespace
+
+Apply policies per namespace
+
+Example:
+
+kubectl delete ns dev
+
+
+➡ Deletes everything inside dev.
+
+4️⃣ Built-in Namespaces (VERY IMPORTANT)
+
+Run:
+
+kubectl get ns
+
+
+You’ll see:
+
+Namespace	Purpose
+default	Default user workloads
+kube-system	Control plane components
+kube-public	Public readable data
+kube-node-lease	Node heartbeat info
+5️⃣ Namespaced vs Cluster-Scoped Resources
+
+⚠️ Very important distinction
+
+Namespaced resources:
+
+Pod
+
+Service
+
+Deployment
+
+ConfigMap
+
+Secret
+
+Cluster-scoped resources:
+
+Node
+
+Namespace
+
+PersistentVolume
+
+ClusterRole
+
+📌 Namespace itself is NOT namespaced.
+
+6️⃣ How Namespace works internally (API view)
+
+Create namespace:
+
+kubectl create ns dev
+
+
+API request:
+
+POST /api/v1/namespaces
+
+
+Get pods in namespace:
+
+kubectl get pods -n dev
+
+
+API request:
+
+GET /api/v1/namespaces/dev/pods
+
+7️⃣ YAML Example
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+
+
+Create:
+
+kubectl apply -f namespace.yaml
+
+8️⃣ Default Namespace behavior
+
+If you don’t specify namespace:
+
+Kubernetes uses default
+
+Example:
+
+kubectl get pods
+
+
+Same as:
+
+kubectl get pods -n default
+
+9️⃣ One Golden Rule 🧠🔥
+Namespace = logical isolation
+Cluster = physical infrastructure
+
+🔟 Interview-Ready Answer (2–3 lines)
+
+A namespace is a logical isolation mechanism in Kubernetes used to organize and separate resources within a cluster.
+It helps with access control, resource quotas, and managing multiple environments like dev, test, and prod.
+
+
+======================================================================================================================================================================================================================
+
+LABLES
+========
