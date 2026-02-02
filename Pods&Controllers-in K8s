@@ -1,0 +1,121 @@
+What are pods ?
+Pods are the smalled unit in kubernetes which is used to deploy a container. Which provide high abstraction over a resource 
+
+What are controllers?
+Controller's keep's our app running in the desired state of the pod . Starting and stopping of the application and autoscaling check's deployment state 
+
+What are static pod's?
+BAsically static pods are something that are managed by kubectl node. A static pod runs because it's Yaml file exist on the node in the location called (/etc/kubernetes/manifest)
+No deployment or Replicat set or scheduler. Kubectl watches the file and ensure the pod is always running . If the pod craches or the file is changed kubectl restart. Update it 
+
+/var/lib/kubelet/config.yaml
+
+==============================================================================================================================================
+
+What is a Multi-Container Pod?
+
+A multi-container pod is a Kubernetes pod that runs more than one container inside the same pod.
+
+👉 All containers in a pod:
+
+Share the same IP address
+
+Share the same network namespace
+
+Can share volumes
+
+Are scheduled together on the same node
+
+Think of it as containers that must live and work together.
+
+Why are multi-container pods used?
+
+They’re used when containers are tightly coupled and depend on each other.
+
+Common reasons:
+
+1️⃣ One container supports another
+2️⃣ They need shared storage
+3️⃣ They must communicate via localhost
+4️⃣ They should be scaled and deployed together
+
+Common Multi-Container Pod Patterns
+1️⃣ Sidecar pattern (most common ⭐)
+
+One main app container + one helper container
+
+Example:
+
+App container → writes logs
+
+Sidecar container → reads logs and ships them to ELK
+
+App Container  ---> /logs (shared volume)
+Sidecar        ---> sends logs
+
+2️⃣ Ambassador pattern
+
+A helper container handles network communication.
+
+Example:
+
+App talks to localhost
+
+Ambassador handles auth / TLS / retries
+
+3️⃣ Adapter pattern
+
+Converts output into a standard format.
+
+Example:
+
+App produces logs in custom format
+
+Adapter converts logs to JSON
+
+Simple YAML Example (Sidecar)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container-pod
+spec:
+  volumes:
+    - name: shared-logs
+      emptyDir: {}
+  containers:
+    - name: app
+      image: nginx
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log/nginx
+
+    - name: sidecar
+      image: busybox
+      command: ["sh", "-c", "tail -f /var/log/nginx/access.log"]
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log/nginx
+
+What’s happening here?
+
+Nginx writes logs
+
+Sidecar reads logs from the same volume
+
+Both containers share the pod lifecycle
+
+When NOT to use multi-container pods ❌
+
+If containers can run independently
+
+If they need separate scaling
+
+If they don’t strongly depend on each other
+
+Interview one-liner 🎯
+
+A multi-container pod runs multiple tightly coupled containers that share networking and storage, commonly used for sidecar, ambassador, or adapter patterns.
+
+=============================================================================================================================================================================
+
+
