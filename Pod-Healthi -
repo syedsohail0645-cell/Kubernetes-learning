@@ -1,0 +1,179 @@
+1️⃣ What does “Pod Health” mean?
+
+Kubernetes doesn’t guess if your app is healthy.
+It uses probes to actively check the container’s health.
+
+👉 Probes tell Kubernetes:
+
+Is the app running correctly?
+
+Should traffic be sent to it?
+
+Should it be restarted?
+
+2️⃣ Types of Health Probes
+
+Kubernetes has three probes:
+
+Liveness Probe
+
+Readiness Probe
+
+Startup Probe
+
+Each has a different purpose.
+
+3️⃣ Liveness Probe (Is the app stuck?)
+What it checks
+
+👉 Is the application still alive and responsive?
+
+If liveness probe fails repeatedly:
+➡ Kubernetes restarts the container.
+
+When to use
+
+App can hang or deadlock
+
+Memory leaks
+
+App is running but not responding
+
+Example (HTTP)
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+
+If /health returns non-200, container is restarted.
+
+Real-life example
+
+App is running but thread is stuck → liveness fails → container restarted → app recovers.
+
+4️⃣ Readiness Probe (Can it receive traffic?)
+What it checks
+
+👉 Is the app ready to serve requests right now?
+
+If readiness probe fails:
+➡ Pod is removed from Service endpoints
+➡ No restart happens
+
+When to use
+
+App is warming up
+
+DB connection not ready
+
+Cache not loaded
+
+Example
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+
+If readiness fails:
+
+Traffic stops
+
+Pod stays running
+
+Real-life example
+
+DB goes down → readiness fails → pod stops receiving traffic → users don’t see errors.
+
+5️⃣ Startup Probe (Has the app started?)
+Why it exists
+
+Some apps start very slowly.
+Liveness probe might kill them before startup completes.
+
+Startup probe tells Kubernetes:
+👉 Wait until startup is complete before applying liveness checks.
+
+How it works
+
+Startup probe runs first
+
+Once it succeeds:
+
+Startup probe stops
+
+Liveness & readiness start
+
+Example
+startupProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  failureThreshold: 30
+  periodSeconds: 10
+
+
+This gives the app:
+👉 30 × 10 = 300 seconds to start.
+
+6️⃣ Full Example (All Probes Together)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: probe-demo
+spec:
+  containers:
+    - name: app
+      image: myapp
+      ports:
+        - containerPort: 8080
+
+      startupProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        failureThreshold: 30
+        periodSeconds: 10
+
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        periodSeconds: 10
+
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8080
+        periodSeconds: 5
+
+7️⃣ What happens internally (Flow)
+Container starts
+   ↓
+Startup Probe checks
+   ↓
+Startup successful
+   ↓
+Readiness Probe (traffic control)
+   ↓
+Liveness Probe (restart control)
+
+8️⃣ Key Differences (Very Important)
+Probe	Purpose	Failure Result
+Startup	App started?	Container killed if exceeded
+Readiness	Can serve traffic?	Removed from service
+Liveness	App alive?	Container restarted
+9️⃣ Interview one-liners 🎯
+
+Liveness: Restarts stuck containers
+
+Readiness: Controls traffic flow
+
+Startup: Protects slow-starting apps
+
+Kubernetes uses probes to determine container health, readiness to receive traffic, and when to restart applications safely.
