@@ -1,0 +1,113 @@
+What is Container Restart Policy?
+
+The restart policy tells Kubernetes what to do when a container inside a pod stops or crashes.
+
+It is defined at the Pod level and applies to all containers in that pod.
+
+restartPolicy: Always | OnFailure | Never
+
+Types of Restart Policies
+1️⃣ Always (Default)
+
+Kubernetes always restarts the container
+
+Applies when:
+
+Container crashes
+
+Container exits normally
+
+Used by:
+
+Deployments
+
+ReplicaSets
+
+StatefulSets
+
+Example
+apiVersion: v1
+kind: Pod
+metadata:
+  name: always-restart
+spec:
+  restartPolicy: Always
+  containers:
+    - name: app
+      image: nginx
+
+
+🔹 If nginx crashes → Kubernetes restarts it automatically.
+
+2️⃣ OnFailure
+
+Container restarts only if exit code ≠ 0
+
+Used mainly for:
+
+Jobs
+
+Batch processing
+
+Example
+apiVersion: v1
+kind: Pod
+metadata:
+  name: onfailure-pod
+spec:
+  restartPolicy: OnFailure
+  containers:
+    - name: job
+      image: busybox
+      command: ["sh", "-c", "exit 1"]
+
+
+🔹 Since exit code = 1 → container is restarted.
+
+3️⃣ Never
+
+Kubernetes never restarts the container
+
+Even if it fails
+
+Used for:
+
+One-time tasks
+
+Debug pods
+
+Example
+apiVersion: v1
+kind: Pod
+metadata:
+  name: never-restart
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test
+      image: busybox
+      command: ["sh", "-c", "exit 1"]
+
+
+🔹 Container fails → pod stays in Failed state.
+
+Where Restart Policy is Applied
+Workload	Restart Policy
+Deployment	Always
+StatefulSet	Always
+Job	OnFailure / Never
+CronJob	OnFailure / Never
+
+⚠️ You cannot use Never or OnFailure with Deployments.
+
+Container Restart vs Pod Restart (Important)
+
+Container restart: Same pod, same IP
+
+Pod restart: Pod deleted and recreated (new IP)
+
+Restart policy controls container restarts only.
+
+Interview one-liner 🎯
+
+Restart policy defines how Kubernetes handles container failures inside a pod, with Always for long-running services, OnFailure for batch jobs, and Never for one-time tasks.
