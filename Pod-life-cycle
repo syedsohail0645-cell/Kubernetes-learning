@@ -1,0 +1,132 @@
+1️⃣ Pod Lifecycle (From Birth to Death)
+
+A Pod lifecycle is the journey of a pod from creation → running → termination.
+
+Pod Phases
+
+You can see pod phase using:
+
+kubectl get pod <pod-name> -o wide
+
+Main Pod Phases
+🔹 Pending
+
+Pod is accepted by Kubernetes
+
+Containers are not running yet
+
+Reasons:
+
+Image pull in progress
+
+Node not available
+
+PVC not bound
+
+🔹 Running
+
+Pod is scheduled to a node
+
+Containers are created
+
+At least one container is running
+
+🔹 Succeeded
+
+All containers finished successfully
+
+Common in Jobs / CronJobs
+
+🔹 Failed
+
+One or more containers exited with failure
+
+Exit code ≠ 0
+
+🔹 Unknown
+
+Kubelet cannot communicate with node
+
+Rare but possible
+
+2️⃣ Pod Stopping & Termination (Very Important)
+
+Pods are not killed immediately.
+
+What happens when a pod is terminated?
+
+Triggered by:
+
+kubectl delete pod
+
+Deployment update
+
+Node shutdown
+
+Auto-scaling
+
+Termination Flow (Step-by-step)
+Step 1: Pod enters Terminating state
+kubectl get pods
+
+Step 2: SIGTERM is sent to containers
+
+Kubernetes sends SIGTERM
+
+App should gracefully shut down
+
+Example:
+
+Stop accepting new requests
+
+Finish ongoing requests
+
+Close DB connections
+
+Step 3: Grace period starts (default 30s)
+terminationGracePeriodSeconds: 30
+
+
+App has this time to exit cleanly.
+
+Step 4: SIGKILL (if not exited)
+
+If app doesn’t stop within grace period
+
+Kubernetes sends SIGKILL
+
+Container is force killed
+
+Example Pod with Grace Period
+apiVersion: v1
+kind: Pod
+metadata:
+  name: graceful-pod
+spec:
+  terminationGracePeriodSeconds: 60
+  containers:
+    - name: app
+      image: nginx
+
+3️⃣ PreStop Hook (Clean Shutdown)
+
+You can run logic before SIGTERM.
+
+Example
+lifecycle:
+  preStop:
+    exec:
+      command: ["sh", "-c", "sleep 10"]
+
+
+Use cases:
+
+Drain traffic
+
+Notify other services
+
+Flush logs
+
+
+====================================================================================================
+
