@@ -1,0 +1,77 @@
+What are Init Containers?
+
+Init containers are special containers that run before the main application containers in a pod.
+
+👉 They are mainly used to:
+
+Do setup tasks
+
+Check dependencies
+
+Prepare configuration or data
+
+Only after init containers finish successfully, the main app containers start.
+
+How Init Containers work (flow)
+
+1️⃣ Pod is created
+2️⃣ Init container starts
+3️⃣ Init container completes its task and exits successfully
+4️⃣ Main application container starts
+5️⃣ If init container fails → pod stays in Init state and retries
+
+📌 Init containers run sequentially, one after another.
+
+Simple Example (Wait for a Service)
+Scenario
+
+Your app should start only after a database is ready.
+
+Pod YAML with Init Container
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+spec:
+  initContainers:
+    - name: wait-for-db
+      image: busybox
+      command:
+        - sh
+        - -c
+        - |
+          until nc -z mysql 3306; do
+            echo "Waiting for database..."
+            sleep 5
+          done
+  containers:
+    - name: app
+      image: nginx
+      ports:
+        - containerPort: 80
+
+What happens here?
+
+wait-for-db runs first
+
+It keeps checking if MySQL on port 3306 is reachable
+
+Once MySQL is available → init container exits
+
+Nginx container starts
+
+Key differences vs normal containers
+Init Container	App Container
+Runs before app	Runs continuously
+Must complete	Keeps running
+Can fail & retry	Restarted on crash
+Used for setup	Used for serving traffic
+Real-world use cases
+
+Waiting for DB / API / DNS
+
+Downloading config or secrets
+
+Setting file permissions
+
+Running DB migrations
